@@ -21,31 +21,52 @@ class WarehouseTest {
     @Test
     void receivingAndShippingProduceIndependentSnapshots() {
         var empty = new Warehouse("Склад");
-        var received = empty.addUnit(productId).addUnit(productId);
-        var shipped = received.ship(productId, customerId, 2);
+        var firstReceipt = empty.receive(productId, 5);
+        var received = firstReceipt.receive(productId, 7);
+        var shipped = received.ship(productId, customerId, 12);
 
         assertEquals(0, empty.quantityOf(productId));
-        assertEquals(2, received.quantityOf(productId));
+        assertEquals(5, firstReceipt.quantityOf(productId));
+        assertEquals(12, received.quantityOf(productId));
         assertEquals(0, shipped.quantityOf(productId));
         assertTrue(received.shipments().isEmpty());
-        assertEquals(List.of(new Shipment(productId, customerId, 2)), shipped.shipments());
+        assertEquals(List.of(new Shipment(productId, customerId, 12)), shipped.shipments());
     }
 
     @ParameterizedTest
     @ValueSource(ints = {0, -1, Integer.MIN_VALUE, 2})
     void invalidShipmentDoesNotChangeStockOrHistory(int quantity) {
-        var warehouse = new Warehouse("Склад").addUnit(productId);
+        var warehouse = new Warehouse("Склад").receive(productId, 1);
         assertThrows(IllegalArgumentException.class,
                 () -> warehouse.ship(productId, customerId, quantity));
         assertEquals(1, warehouse.quantityOf(productId));
         assertTrue(warehouse.shipments().isEmpty());
     }
 
+    @ParameterizedTest
+    @ValueSource(ints = {0, -1, Integer.MIN_VALUE})
+    void invalidReceiptDoesNotChangeStockOrHistory(int quantity) {
+        var warehouse = new Warehouse("Склад").receive(productId, 5).ship(productId, customerId, 1);
+        assertThrows(IllegalArgumentException.class, () -> warehouse.receive(productId, quantity));
+        assertEquals(4, warehouse.quantityOf(productId));
+        assertEquals(List.of(new Shipment(productId, customerId, 1)), warehouse.shipments());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {6, Integer.MAX_VALUE})
+    void cannotReceiveBeyondIntegerCapacity(int quantity) {
+        var warehouse = new Warehouse("Склад", Map.of(productId, Integer.MAX_VALUE - 5), List.of());
+        assertThrows(IllegalArgumentException.class, () -> warehouse.receive(productId, quantity));
+        assertEquals(Integer.MAX_VALUE - 5, warehouse.quantityOf(productId));
+        assertTrue(warehouse.shipments().isEmpty());
+    }
+
     @Test
-    void cannotReceiveBeyondIntegerCapacity() {
-        var warehouse = new Warehouse("Склад", Map.of(productId, Integer.MAX_VALUE), List.of());
-        assertThrows(IllegalArgumentException.class, () -> warehouse.addUnit(productId));
-        assertEquals(Integer.MAX_VALUE, warehouse.quantityOf(productId));
+    void canReceiveExactlyUpToIntegerCapacity() {
+        var warehouse = new Warehouse("Склад").receive(productId, Integer.MAX_VALUE - 5);
+        var full = warehouse.receive(productId, 5);
+        assertEquals(Integer.MAX_VALUE, full.quantityOf(productId));
+        assertThrows(IllegalArgumentException.class, () -> full.receive(productId, 1));
     }
 
     @Test

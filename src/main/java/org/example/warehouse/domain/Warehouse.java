@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-/** Неизменяемое состояние одного склада: остатки и журнал отпуска. */
+
 public record Warehouse(String name, Map<UUID, Integer> stock, List<Shipment> shipments) {
     public Warehouse {
         name = Validation.requiredText(name, "Название склада");
@@ -26,13 +26,16 @@ public record Warehouse(String name, Map<UUID, Integer> stock, List<Shipment> sh
         return stock.getOrDefault(Objects.requireNonNull(productId, "productId"), 0);
     }
 
-    public Warehouse addUnit(UUID productId) {
+    public Warehouse receive(UUID productId, int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Количество должно быть положительным.");
+        }
         int current = quantityOf(productId);
-        if (current == Integer.MAX_VALUE) {
+        if (quantity > Integer.MAX_VALUE - current) {
             throw new IllegalArgumentException("Достигнут предел количества товара.");
         }
         Map<UUID, Integer> updated = new HashMap<>(stock);
-        updated.put(productId, current + 1);
+        updated.put(productId, current + quantity);
         return new Warehouse(name, updated, shipments);
     }
 

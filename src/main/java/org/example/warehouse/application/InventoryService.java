@@ -14,7 +14,7 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/** Согласует справочники и склад; правила изменения остатка принадлежат Warehouse. */
+
 public final class InventoryService {
     private final WarehouseRepository warehouse;
     private final ProductRepository products;
@@ -27,9 +27,9 @@ public final class InventoryService {
         this.customers = Objects.requireNonNull(customers);
     }
 
-    public void addUnit(UUID productId) {
+    public void receive(UUID productId, int quantity) {
         requireProduct(productId);
-        warehouse.save(warehouse.load().addUnit(productId));
+        warehouse.save(warehouse.load().receive(productId, quantity));
     }
 
     public void ship(UUID productId, UUID customerId, int quantity) {

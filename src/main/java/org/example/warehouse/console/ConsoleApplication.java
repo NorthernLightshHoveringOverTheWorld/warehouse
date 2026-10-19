@@ -15,7 +15,7 @@ import java.util.Objects;
 import java.util.Scanner;
 import java.util.function.Function;
 
-/** Только консольный протокол: ввод, выбор объектов и форматирование результатов. */
+
 public final class ConsoleApplication {
     private final CatalogService catalog;
     private final InventoryService inventory;
@@ -56,7 +56,7 @@ public final class ConsoleApplication {
                 1. Зарегистрировать поставщика
                 2. Зарегистрировать покупателя
                 3. Зарегистрировать товар (без остатка)
-                4. Добавить единицу товара на склад
+                4. Принять товар на склад
                 5. Отпустить товар покупателю
                 6. Доступные позиции (остаток > 0)
                 7. Проверить наличие товара
@@ -81,8 +81,9 @@ public final class ConsoleApplication {
             case "3" -> registerProduct();
             case "4" -> {
                 Product product = choose(catalog.products(), ConsoleApplication::describeProduct);
-                inventory.addUnit(product.id());
-                output.println("Добавлена 1 единица. Остаток: " + inventory.quantityOf(product.id()));
+                int quantity = readNumber("Количество: ");
+                inventory.receive(product.id(), quantity);
+                output.println("Принято: " + quantity + " шт. Остаток: " + inventory.quantityOf(product.id()));
             }
             case "5" -> ship();
             case "6" -> printPositions(inventory.availablePositions());

@@ -33,20 +33,20 @@ class ApplicationTest {
         assertEquals(0, inventory.quantityOf(product.id()));
         assertEquals(1, inventory.allPositions().size());
         assertTrue(inventory.availablePositions().isEmpty());
-        inventory.addUnit(product.id());
-        inventory.addUnit(product.id());
-        assertEquals(2, inventory.availablePositions().get(0).quantity());
-        inventory.ship(product.id(), customer.id(), 2);
+        inventory.receive(product.id(), 5);
+        inventory.receive(product.id(), 7);
+        assertEquals(12, inventory.availablePositions().get(0).quantity());
+        inventory.ship(product.id(), customer.id(), 12);
         assertTrue(inventory.availablePositions().isEmpty());
         assertEquals(1, inventory.allPositions().size());
-        assertEquals(2, inventory.shipmentsFor(customer.id()).get(0).quantity());
+        assertEquals(12, inventory.shipmentsFor(customer.id()).get(0).quantity());
     }
 
     @Test
     void missingReferencesDoNotModifyState() {
         UUID missing = UUID.randomUUID();
         var initial = warehouse.load();
-        assertThrows(IllegalArgumentException.class, () -> inventory.addUnit(missing));
+        assertThrows(IllegalArgumentException.class, () -> inventory.receive(missing, 5));
         assertThrows(IllegalArgumentException.class, () -> inventory.quantityOf(missing));
         assertThrows(IllegalArgumentException.class, () -> inventory.ship(missing, customer.id(), 1));
         assertThrows(IllegalArgumentException.class, () -> inventory.ship(product.id(), missing, 1));
@@ -58,7 +58,7 @@ class ApplicationTest {
 
     @Test
     void failedShipmentDoesNotSavePartialResult() {
-        inventory.addUnit(product.id());
+        inventory.receive(product.id(), 1);
         var initial = warehouse.load();
         assertThrows(IllegalArgumentException.class, () -> inventory.ship(product.id(), customer.id(), 2));
         assertSame(initial, warehouse.load());
@@ -69,7 +69,7 @@ class ApplicationTest {
     void groupingIncludesZeroStockAndKeepsTypesSeparate() {
         var bread = catalog.registerProduct("Хлеб", "Продукты", supplier.id());
         var hammer = catalog.registerProduct("Молоток", "Инструменты", supplier.id());
-        inventory.addUnit(hammer.id());
+        inventory.receive(hammer.id(), 1);
         var groups = inventory.groupByType();
         assertEquals(List.of(product, bread), groups.get("Продукты").stream().map(p -> p.product()).toList());
         assertEquals(hammer, groups.get("Инструменты").get(0).product());
@@ -81,13 +81,24 @@ class ApplicationTest {
     @Test
     void suppliersAndCustomersRetainTheirInformationAndIndividualHistory() {
         var other = catalog.registerCustomer("Борис", "67890");
-        inventory.addUnit(product.id());
+        inventory.receive(product.id(), 1);
         inventory.ship(product.id(), customer.id(), 1);
         assertEquals(List.of(supplier), catalog.suppliers());
         assertEquals(List.of(customer, other), catalog.customers());
         assertEquals(supplier.id(), product.supplierId());
         assertTrue(inventory.shipmentsFor(other.id()).isEmpty());
         assertEquals(customer.id(), inventory.shipmentsFor(customer.id()).get(0).customerId());
+    }
+
+    @Test
+    void failedReceiptsDoNotSavePartialResult() {
+        inventory.receive(product.id(), 5);
+        inventory.ship(product.id(), customer.id(), 1);
+        var initial = warehouse.load();
+        for (int quantity : new int[]{0, -1, Integer.MAX_VALUE}) {
+            assertThrows(IllegalArgumentException.class, () -> inventory.receive(product.id(), quantity));
+            assertSame(initial, warehouse.load());
+        }
     }
 
     @Test

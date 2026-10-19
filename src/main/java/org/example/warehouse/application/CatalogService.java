@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-/** Сценарии ведения справочников и проверка связи товара с поставщиком. */
+
 public final class CatalogService {
     private final ProductRepository products;
     private final CustomerRepository customers;

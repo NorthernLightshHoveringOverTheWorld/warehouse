@@ -29,15 +29,17 @@ class ConsoleApplicationTest {
                 "1", "Поставщик", "s@example.com",
                 "2", "Анна", "12345",
                 "3", "1", "Молоко", "Продукты",
-                "4", "1", "4", "1", "6", "7", "1", "8", "9",
+                "4", "1", "5", "4", "1", "7", "6", "7", "1", "8", "9",
                 "5", "1", "1", "1", "10", "11", "0"));
         assertFalse(output.contains("Ошибка:"));
-        assertTrue(output.contains("В наличии: 2 шт."));
+        assertTrue(output.contains("Принято: 5 шт. Остаток: 5"));
+        assertTrue(output.contains("Принято: 7 шт. Остаток: 12"));
+        assertTrue(output.contains("В наличии: 12 шт."));
         assertTrue(output.contains("Вид: Продукты"));
         assertTrue(output.contains("s@example.com"));
         assertTrue(output.contains("Получено: Молоко | 1 шт."));
         assertTrue(output.contains("Работа завершена."));
-        assertEquals(1, inventory.quantityOf(catalog.products().get(0).id()));
+        assertEquals(11, inventory.quantityOf(catalog.products().get(0).id()));
     }
 
     @Test
@@ -46,12 +48,33 @@ class ConsoleApplicationTest {
         var product = catalog.registerProduct("Молоко", "Продукты", supplier.id());
         catalog.registerCustomer("Анна", "Контакт");
         String output = run(String.join("\n", "unknown", "4", "text", "4", "9",
-                "5", "1", "1", "-1", "4", "1", "0"));
+                "5", "1", "1", "-1", "4", "1", "1", "0"));
         assertTrue(output.contains("Неизвестная команда"));
         assertTrue(output.contains("Введите целое число"));
         assertTrue(output.contains("Номер записи вне списка"));
         assertTrue(output.contains("Количество должно быть положительным"));
         assertEquals(1, inventory.quantityOf(product.id()));
+    }
+
+    @Test
+    void invalidReceiptQuantitiesDoNotChangeStockAndAllowRetry() {
+        var supplier = catalog.registerSupplier("Поставщик", "Контакт");
+        var product = catalog.registerProduct("Молоко", "Продукты", supplier.id());
+        String output = run(String.join("\n", "4", "1", "0", "4", "1", "-3",
+                "4", "1", "text", "4", "1", "2147483648", "4", "1", "5", "0"));
+        assertTrue(output.contains("Количество должно быть положительным"));
+        assertTrue(output.contains("Введите целое число"));
+        assertTrue(output.contains("Принято: 5 шт. Остаток: 5"));
+        assertEquals(5, inventory.quantityOf(product.id()));
+    }
+
+    @Test
+    void endOfInputBeforeReceiptQuantityDoesNotChangeStock() {
+        var supplier = catalog.registerSupplier("Поставщик", "Контакт");
+        var product = catalog.registerProduct("Молоко", "Продукты", supplier.id());
+        String output = run("4\n1\n");
+        assertTrue(output.contains("Ввод завершён."));
+        assertEquals(0, inventory.quantityOf(product.id()));
     }
 
     @Test

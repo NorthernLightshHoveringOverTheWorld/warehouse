@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/** add запрещает повторный id; findAll возвращает неизменяемый снимок в порядке добавления. */
+
 public interface CustomerRepository {
     void add(Customer customer);
     Optional<Customer> findById(UUID id);
