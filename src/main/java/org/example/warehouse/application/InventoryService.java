@@ -29,13 +29,13 @@ public final class InventoryService {
 
     public void receive(UUID productId, int quantity) {
         requireProduct(productId);
-        warehouse.save(warehouse.load().receive(productId, quantity));
+        warehouse.update(state -> state.receive(productId, quantity));
     }
 
     public void ship(UUID productId, UUID customerId, int quantity) {
         requireProduct(productId);
         requireCustomer(customerId);
-        warehouse.save(warehouse.load().ship(productId, customerId, quantity));
+        warehouse.update(state -> state.ship(productId, customerId, quantity));
     }
 
     public int quantityOf(UUID productId) {
@@ -65,6 +65,10 @@ public final class InventoryService {
         requireCustomer(customerId);
         return warehouse.load().shipments().stream()
                 .filter(shipment -> shipment.customerId().equals(customerId)).toList();
+    }
+
+    public List<Shipment> shipments() {
+        return warehouse.load().shipments();
     }
 
     private void requireProduct(UUID productId) {

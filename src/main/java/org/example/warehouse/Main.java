@@ -13,7 +13,7 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
-/** Точка сборки зависимостей; единственное место выбора конкретных хранилищ. */
+
 public final class Main {
     private Main() {
     }

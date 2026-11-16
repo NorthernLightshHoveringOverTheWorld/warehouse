@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#29285e">
+  <title>Склад — управление запасами</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="#inventory"><span class="brand-mark">▦</span><span>Склад<span class="brand-caption">УПРАВЛЕНИЕ ЗАПАСАМИ</span></span></a>
+    <div class="workspace"><span class="workspace-icon">▣</span><div>Основной склад<small>Рабочее пространство</small></div></div>
+    <span class="nav-caption">ОБЗОР</span>
+    <nav aria-label="Основная навигация">
+      <a href="#inventory" data-page="inventory"><span aria-hidden="true">▦</span>Товары и остатки</a>
+      <a href="#suppliers" data-page="suppliers"><span aria-hidden="true">↘</span>Поставщики</a>
+      <a href="#customers" data-page="customers"><span aria-hidden="true">♧</span>Покупатели</a>
+      <a href="#history" data-page="history"><span aria-hidden="true">↗</span>История выдач</a>
+    </nav>
+    <div class="sidebar-note"><span class="note-icon">✦</span><strong>Всё под контролем</strong><p>Учитывайте поступления и выдачи. Остатки обновляются после каждой операции.</p></div>
+    <div class="sidebar-footer"><span class="avatar">ОС</span><div>Основной склад<small>Локальное приложение</small></div></div>
+  </aside>
+  <main>
+    <header class="topbar"><span>Рабочее пространство <span class="slash">/</span> <strong id="breadcrumb">Товары и остатки</strong></span><span class="connection" id="connection">Подключение…</span></header>
+    <div class="content">
+      <div class="page-heading"><div><div class="eyebrow">ВАШ СКЛАД, В ПОРЯДКЕ</div><h1 id="title">Товары и остатки</h1><p id="subtitle">Товары, наличие и движение запасов в одном месте.</p></div><button class="primary" id="create-button" type="button">+ Новый товар</button></div>
+      <div class="error-banner" id="load-error" role="alert" hidden><span></span><button type="button" id="retry">Повторить</button></div>
+      <section class="metrics" aria-label="Сводка по складу">
+        <article class="metric"><div><span>Позиций в каталоге</span><span class="metric-icon purple">▦</span></div><strong id="metric-products">—</strong><small>Весь ассортимент склада</small></article>
+        <article class="metric"><div><span>Единиц на складе</span><span class="metric-icon blue">▣</span></div><strong id="metric-stock">—</strong><small>Суммарный текущий остаток</small></article>
+        <article class="metric"><div><span>Доступных позиций</span><span class="metric-icon green">✓</span></div><strong id="metric-available">—</strong><small>Готовы к выдаче покупателю</small></article>
+        <article class="metric"><div><span>Нет в наличии</span><span class="metric-icon amber">○</span></div><strong id="metric-empty">—</strong><small>Позиции с нулевым остатком</small></article>
+      </section>
+      <section class="panel">
+        <div class="panel-heading"><div><h2 id="section-title">Каталог товаров</h2><span class="count" id="count">Загрузка…</span></div><div class="actions" id="stock-actions"><button type="button" class="secondary" data-action="receive">↙ Принять товар</button><button type="button" class="secondary" data-action="ship">↗ Выдать товар</button></div></div>
+        <div class="filters"><label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" aria-label="Поиск" placeholder="Найти по названию или виду…"></label><label class="filter-label" id="type-filter">Вид <select id="type"><option value="">Все виды</option></select></label><label class="check" id="available-filter"><input id="available" type="checkbox">Только в наличии</label><button class="group-button" id="group" type="button" aria-pressed="false">По видам</button></div>
+        <div id="data" aria-live="polite"><div class="empty"><span class="empty-icon">◌</span><h3>Загружаем данные</h3><p>Подготавливаем ваш склад…</p></div></div>
+        <footer class="panel-footer"><span id="result-count">Подключаемся к складу…</span><button class="text-button" id="refresh" type="button">↻ Обновить</button></footer>
+      </section>
+      <p class="footnote">Изменения сохраняются автоматически после подтверждения операции.</p>
+    </div>
+  </main>
+  <dialog id="dialog" aria-labelledby="dialog-title"><form id="form"><div class="dialog-heading"><div><div class="eyebrow">УПРАВЛЕНИЕ СКЛАДОМ</div><h2 id="dialog-title"></h2></div><button class="close" id="close-dialog" type="button" aria-label="Закрыть">×</button></div><p id="dialog-description" class="dialog-description"></p><div id="fields"></div><p id="form-error" class="form-error" role="alert" hidden></p><div class="dialog-actions"><button class="secondary" id="cancel" type="button">Отмена</button><button class="primary" id="submit" type="submit">Сохранить</button></div></form></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>
