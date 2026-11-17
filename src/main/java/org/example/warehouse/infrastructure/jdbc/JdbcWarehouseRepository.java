@@ -29,7 +29,6 @@ public class JdbcWarehouseRepository implements WarehouseRepository {
 
     @Override
     public Warehouse load() {
-        // A shared row lock keeps the three SELECTs consistent with concurrent writers.
         return transaction.execute(status -> {
             lock("FOR SHARE");
             return read();
@@ -77,8 +76,6 @@ public class JdbcWarehouseRepository implements WarehouseRepository {
     }
 
     private void write(Warehouse current, Warehouse updated) {
-        // Normal receive/ship operations only append, preserving IDs and timestamps.
-        // Explicit save also supports full snapshot replacement, like the in-memory adapter.
         int count = current.shipments().size();
         if (updated.shipments().size() < count || !updated.shipments().subList(0, count).equals(current.shipments())) {
             jdbc.update("DELETE FROM shipments WHERE warehouse_id=1");
